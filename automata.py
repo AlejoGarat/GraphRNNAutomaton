@@ -1,5 +1,3 @@
-import numpy as np
-
 class Automata():
     def __init__(self, transitions, final_states: set = {}):
         self.transitions = transitions
