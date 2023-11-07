@@ -45,4 +45,4 @@ def generate_automatons_minimal_property():
         path="minimal_property_automatas"
     )
     
-generate_automatons_minimal_property()
+generate_automatons_unique_accepting_property()
