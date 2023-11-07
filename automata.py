@@ -1,8 +1,10 @@
 class Automata():
-    def __init__(self, transitions, final_states: set = {}):
+    def __init__(self, transitions, final_states: set = {}, alphabet: [] = [], initial_state: str = ''):
         self.transitions = transitions
         self.final_states = final_states
-    
+        self.alphabet = alphabet
+        self.initial_state = initial_state
+        
     def __str__(self):
         return f"Transitions: {self.transitions}\nFinal states: {self.final_states}"
     
