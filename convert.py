@@ -1,6 +1,8 @@
 from automata_converter import automata_to_pythautomata_automata
 from automata import Automata
 import numpy as np
+#Import StandardDotExportingStrategy
+from pythautomata.model_exporters.dot_exporters.dfa_dot_exporting_strategy import DfaDotExportingStrategy as DotExporter
 # Convert an automata to a pythautomata automata example
 
 transitions = np.empty((3, 3), dtype=object)
@@ -21,7 +23,7 @@ alphabet = ['a', 'b']
 automata = Automata(transitions, final_states, alphabet, initial_state, pos_dict)
 
 pythautomata_automata = automata_to_pythautomata_automata(automata)
-pythautomata_automata.export()
+DotExporter().export(pythautomata_automata)
 
 
 
