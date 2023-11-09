@@ -7,9 +7,11 @@ def export_automatas(automatas: [Automata], path: str):
     Args:
         automatas ([Automata]): The automatas to export.
     """
-    
     pkl_file = open(f'{path}.pkl', 'wb')
-    pickle.dump(automatas, pkl_file)
+    transitions_final_states = [(automata.transitions, automata.final_states, automata.alphabet, automata.initial_state,
+                                 automata.pos_dict) 
+                                for automata in automatas]
+    pickle.dump(transitions_final_states, pkl_file)
     pkl_file.close()
 
 
