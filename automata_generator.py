@@ -39,14 +39,17 @@ def generate_many_automatas(amount: int, nominal_size: int, alphabet_size: int) 
 
 def pythautomata_automata_to_automata(dfa: DFA) -> Automata:
     transitions = np.empty((len(dfa.states), len(dfa.states)), dtype=object)
-    alphabet = dfa.alphabet.symbols
+    alphabet = []
+    for symbol in dfa.alphabet.symbols:
+        alphabet.append(symbol)
+    
     initial_state = dfa.initial_state.name
     
     for row in range(len(dfa.states)):
         for col in range(len(dfa.states)):
             transitions[row, col] = set()
-
-    final_states = [state.name for state in dfa.states if state.is_final]
+            
+    final_states = set([state.name for state in dfa.states if state.is_final])
     pos_dict = {}
     for i, state in enumerate(dfa.states):
         pos_dict[state.name] = i
