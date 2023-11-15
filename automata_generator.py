@@ -11,6 +11,7 @@ from pymodelextractor.teachers.general_teacher import GeneralTeacher
 from pythautomata.model_comparators.hopcroft_karp_comparison_strategy import HopcroftKarpComparisonStrategy as Hopcroft
 from pythautomata.model_comparators.dfa_comparison_strategy import DFAComparisonStrategy
 from pythautomata.model_exporters.dot_exporters.dfa_dot_exporting_strategy import DfaDotExportingStrategy as DotExporter
+from pythautomata.utilities.dfa_minimizer import DFAMinimizer
 
 def generate_and_export_automatas(property: str, amount: int, nominal_size: int, alphabet_size: int, path: str):
     dfas = generate_many_automatas(amount, nominal_size, alphabet_size)
@@ -63,7 +64,7 @@ def pythautomata_automata_to_automata(dfa: DFA) -> Automata:
 
 def make_automata_connected(dfa: DFA) -> DFA:
     for state in dfa.states:
-        is_hole = is_hole_state(dfa, state)
+        is_hole = is_dead_end_state(dfa, state) and not(state.is_final)
         if is_hole:
             prob = 0.5
             if np.random.rand() < prob:
@@ -76,7 +77,7 @@ def make_automata_connected(dfa: DFA) -> DFA:
                  
     return dfa
 
-def is_hole_state(dfa: DFA, state: State) -> bool:
+def is_dead_end_state(dfa: DFA, state: State) -> bool:
     for symbol in dfa.alphabet.symbols:
         if state.transitions[symbol] != state:
             return False
@@ -98,13 +99,5 @@ def make_automata_unique_accepting(dfa: DFA) -> DFA:
     return dfa
 
 def make_automata_minimal(dfa: DFA) -> DFA:
-    learner = LStarFactory.get_dfa_lstar_learner()
-    comparator = DFAComparisonStrategy()
-    teacher = GeneralTeacher(state_machine=dfa, comparison_strategy=comparator)
-    minimal_dfa = learner.learn(teacher).model
-    
-    for state in minimal_dfa.states:
-        if state.name == 'ϵ':
-            state.name = 'epsilon'
-    
-    return minimal_dfa
+    dfa_minimizer = DFAMinimizer(dfa)
+    return dfa_minimizer.minimize()

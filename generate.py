@@ -39,10 +39,10 @@ def generate_automatons_minimal_property():
     # - Path: automatas.pickle
     automata_generator.generate_and_export_automatas(
         property="minimal", 
-        amount=1, 
-        nominal_size=10, 
+        amount=10, 
+        nominal_size=20, 
         alphabet_size=2, 
         path="minimal_property_automatas"
     )
     
-generate_automatons_unique_accepting_property()
+generate_automatons_minimal_property()
