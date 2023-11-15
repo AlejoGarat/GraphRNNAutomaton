@@ -8,13 +8,12 @@ def export_automatas(automatas: [Automata], path: str):
     Args:
         automatas ([Automata]): The automatas to export.
     """
-    pkl_file = open(f'{path}.pkl', 'wb')
+    pkl_file = open(f'{path}.pkl', 'wb')    
     automata_info = bfs_processed_automata_info(automatas)
     pickle.dump(automata_info, pkl_file)
     pkl_file.close()
     
 def bfs_processed_automata_info(automatas: [Automata]) -> tuple[list, list]:
-    bfs_automatas_info = []
     transitions_list = []
     final_states_list = []
     

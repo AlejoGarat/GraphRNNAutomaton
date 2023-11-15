@@ -24,7 +24,7 @@ def generate_automatons_unique_accepting_property():
     # - Path: automatas.pickle
     automata_generator.generate_and_export_automatas(
         property="unique_accepting", 
-        amount=1, 
+        amount=10, 
         nominal_size=10, 
         alphabet_size=2, 
         path="unique_accepting_property_automatas"
@@ -45,4 +45,4 @@ def generate_automatons_minimal_property():
         path="minimal_property_automatas"
     )
     
-generate_automatons_minimal_property()
+generate_automatons_unique_accepting_property()
