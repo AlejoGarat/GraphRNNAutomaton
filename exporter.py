@@ -8,13 +8,14 @@ def export_automatas(automatas: [Automata], path: str):
     Args:
         automatas ([Automata]): The automatas to export.
     """
-    pkl_file = open(f'{path}.pkl', 'wb')
+    pkl_file = open(f'{path}.pkl', 'wb')    
     automata_info = bfs_processed_automata_info(automatas)
     pickle.dump(automata_info, pkl_file)
     pkl_file.close()
     
-def bfs_processed_automata_info(automatas: [Automata]) -> dict():
-    bfs_automatas_info = []
+def bfs_processed_automata_info(automatas: [Automata]) -> tuple[list, list]:
+    transitions_list = []
+    final_states_list = []
     
     for automata in automatas:
         queue = []
@@ -47,11 +48,12 @@ def bfs_processed_automata_info(automatas: [Automata]) -> dict():
         for state in automata.final_states:
             new_final_states.add(node_dict[automata.pos_dict[state]])
             
-        automata_info = {"transitions": new_transitions, "final_states": new_final_states, 
-                      "initial_state": automata.pos_dict[automata.initial_state]}
-        bfs_automatas_info.append(automata_info)
+        final_states = [1 if i in new_final_states else 0 for i in range(len(automata.transitions))]
+                     
+        transitions_list.append(new_transitions)
+        final_states_list.append(final_states)
         
-    return bfs_automatas_info
+    return (transitions_list, final_states_list)
                 
 
 def read_automatas(path: str) -> [Automata]:
