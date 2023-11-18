@@ -39,7 +39,7 @@ def automaton_is_connected(automaton: DFA) -> tuple[bool, dict]:
         
 def is_dead_end_state(dfa: DFA, state: State) -> bool:
     for symbol in dfa.alphabet.symbols:
-        if state.transitions[symbol] != state:
+        if state not in state.transitions[symbol]:
             return False
     
     return True
@@ -55,10 +55,11 @@ def automaton_is_minimal(automaton: DFA) -> tuple[bool, dict]:
     dfa_minimizer = DFAMinimizer(automaton)
     final_eq_class, _ = dfa_minimizer._get_final_eq_class()
     indist_states_amount = get_dfa_indistinguishable_states_amount(final_eq_class)
+    non_final_states = [state for state in automaton.states if not(state.is_final)]
     obs = {
         "equivalences_classes": len(final_eq_class),
         "indistinguishable_states": indist_states_amount,
-        "dead_end_states": len([state for state in automaton.states if is_dead_end_state(automaton, state)]),
+        "dead_end_states": len([state for state in non_final_states if is_dead_end_state(automaton, state)]),
         "unreachable_states": get_unreachable_states_amount(automaton)
     }
     return len(automaton.states) == len(dfa_minimizer.minimize().states), obs
@@ -89,5 +90,12 @@ def get_unreachable_states_amount(dfa: DFA) -> int:
 def get_neighbors(dfa: DFA, state: State) -> [State]:
     for symbol in dfa.alphabet.symbols:
         yield state.next_state_for(symbol)
-    
-automaton_is_minimal(None)
+  
+  
+# Minimal property automata #
+state = State("q0")
+alphabet = Alphabet([SymbolStr("a"), SymbolStr("b")])
+state.add_transition(SymbolStr("a"), state)
+state.add_transition(SymbolStr("b"), state)
+state.is_final = True
+dfa = DFA(alphabet, state, [state], None, None)
