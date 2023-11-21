@@ -12,6 +12,11 @@ from pythautomata.model_comparators.hopcroft_karp_comparison_strategy import Hop
 from pythautomata.model_comparators.dfa_comparison_strategy import DFAComparisonStrategy
 from pythautomata.model_exporters.dot_exporters.dfa_dot_exporting_strategy import DfaDotExportingStrategy as DotExporter
 from pythautomata.utilities.dfa_minimizer import DFAMinimizer
+from automata_converter import automata_to_pythautomata_automata
+
+def validate_property(property, automaton):
+    return validate_automaton_property(property,
+                            automata_to_pythautomata_automata(automaton))
 
 def validate_automaton_property(property: str, automaton: DFA) -> bool:
     if property == "connected":
