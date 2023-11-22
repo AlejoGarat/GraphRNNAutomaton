@@ -1,7 +1,7 @@
 import wandb
 
 def get_wandb_sweep_name(property_name):
-    if property_name == 'minmal':
+    if property_name == 'minimal':
         return 'Minimal DFA'
     if property_name == 'unique_accepting':
         return 'Unique Accepting State DFA'

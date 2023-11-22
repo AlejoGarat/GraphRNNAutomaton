@@ -4,6 +4,7 @@ import torch.nn as nn
 import numpy as np
 from torch.nn import RNN, Linear, Dropout
 from graph import Graph
+from automata_converter import convert_to_automata
 
 class EdgeMLP(nn.Module):
     def __init__(self, m, input_dim):
@@ -62,28 +63,38 @@ class AutomatonRNN(nn.Module):
     def get_initial_hidden(self, n):
         return self.node_rnn.get_initial_hidden(n)
     
-def generate(model, max_nodes):
+def generate(model, max_nodes, number_of_graphs):
     with torch.no_grad():
-        graph = Graph()
-        x = model.get_sos(1)
-        h = model.get_initial_hidden(1)
+        graphs = [Graph() for _ in range(number_of_graphs)]
+        ends = [False for _ in range(number_of_graphs)]
+        nodes = [0 for _ in range(number_of_graphs)]
         end = False
-        node = 0
+        x = model.get_sos(number_of_graphs)
+        h = model.get_initial_hidden(number_of_graphs)
+
         while not end:
             x, h = model(x, h)
-            conns, final_prob, end_prob = unfold_pred(x, model.m)
-            final_prob = float(final_prob)
-            is_final = np.random.choice([False, True], p=[1-final_prob, final_prob])
-            graph.add_node(node, conns, is_final)
-            end_prob = float(end_prob)
-            end = np.random.choice([False, True], p=[1-end_prob, end_prob])
-            node += 1
-            x = x.reshape(1,-1)
-            h = h.reshape(1,-1)
+            conns, final_probs, end_probs = unfold_pred(x, model.m)
+            for i, final_prob in enumerate(final_probs):
+                if not ends[i]:
+                    final_prob = float(final_prob)
+                    end_prob =  float(end_probs[i])
+                    is_final = np.random.choice([False, True], p=[1-final_prob, final_prob])
+                    graphs[i].add_node(nodes[i], conns[i], is_final)
+                    ends[i] = np.random.choice([False, True], p=[1-end_prob, end_prob])
+                    nodes[i] += 1
 
-            if node > max_nodes:
+            end = np.sum(ends) == len(ends)
+            if nodes[0] > max_nodes:
                 end = True
-        return graph
+                
+            x = x.reshape(number_of_graphs, 1, -1)
+            h = h.reshape(1, number_of_graphs, -1)
+
+        return graphs
+
+def generate_automatas(model, max_nodes, number_graphs, alphabet_len):
+    return [convert_to_automata(g, {i for i in range(alphabet_len)}) for g in generate(model, max_nodes, number_graphs)]
     
 def unfold_pred(res, m):
     conns = res[:,:2*m+1]
