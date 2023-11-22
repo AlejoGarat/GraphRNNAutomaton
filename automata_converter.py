@@ -1,6 +1,8 @@
 import numpy as np
 from automata import Automata
-from pythautomata.base_types.state import State 
+from pythautomata.base_types.state import State
+from pythautomata.base_types.symbol import SymbolStr
+from pythautomata.base_types.alphabet import Alphabet
 from pythautomata.automata.deterministic_finite_automaton import DeterministicFiniteAutomaton as DFA
 from pythautomata.model_exporters.dot_exporters.dfa_dot_exporting_strategy import DfaDotExportingStrategy as DotExporter
 from pythautomata.model_exporters.image_exporters.image_exporting_strategy import ImageExportingStrategy
@@ -39,9 +41,9 @@ def automata_to_pythautomata_automata(automata: Automata) -> DFA:
         state_pos = automata.pos_dict[state.name]
         for pos in range(len(automata.transitions)):
             for symbol in automata.transitions[state_pos][pos]:
-                state.add_transition(symbol, get_state_of_pos(pos, automata, states))      
+                state.add_transition(SymbolStr(symbol), get_state_of_pos(pos, automata, states))      
                 
-    return DFA(alphabet=alphabet, states=states, initial_state=initial_state, comparator=None)
+    return DFA(alphabet=Alphabet([SymbolStr(s) for s in list(alphabet)]), states=states, initial_state=initial_state, comparator=None)
    
 def get_state_of_pos(pos: int, automata: Automata, states: set):
     for state in states:

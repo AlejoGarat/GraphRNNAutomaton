@@ -19,7 +19,18 @@ def validate_automaton_property(property: str, automaton: DFA) -> bool:
         return automaton_is_minimal(automaton)
     else:
         raise ValueError("Unknown property")
-    
+
+def get_metrics(property, automatas):
+    dfas = [automata_to_pythautomata_automata(automata) for automata in automatas]
+    if property == "connected":
+        return connected_automatas_metrics(dfas)
+    elif property == "unique_accepting":
+        return unique_accepting_automatas_metrics(dfas)
+    elif property == "minimal":
+        return minimal_automatas_metrics(dfas)
+    else:
+        raise ValueError("Unknown property")
+
 def connected_automatas_metrics(automatas: [DFA]) -> dict:
     automatas_dead_end_states = []
     automatas_with_dead_end_states = []
