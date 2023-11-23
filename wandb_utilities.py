@@ -1,12 +1,12 @@
 import wandb
 
-def get_wandb_sweep_name(property_name):
+def get_wandb_sweep_name(property_name, state_amount, alphabet_size):
     if property_name == 'minimal':
-        return 'Minimal DFA'
+        return f'Minimal DFA S{state_amount} A{alphabet_size}'
     if property_name == 'unique_accepting':
-        return 'Unique Accepting State DFA'
+        return f'Unique Accepting State DFA S{state_amount} A{alphabet_size}'
     if property_name == 'connected':
-        return 'Fully Connected DFA'
+        return f'Fully Connected DFA S{state_amount} A{alphabet_size}'
     else:
         raise NameError('Incorrect Property!')
     
