@@ -94,7 +94,7 @@ def generate(model, max_nodes, number_of_graphs):
         return graphs
 
 def generate_automatas(model, max_nodes, number_graphs, alphabet_len):
-    return [convert_to_automata(g, {i for i in range(alphabet_len)}) for g in generate(model, max_nodes, number_graphs)]
+    return [convert_to_automata(g, [str(i) for i in range(alphabet_len)]) for g in generate(model, max_nodes, number_graphs)]
     
 def unfold_pred(res, m):
     conns = res[:,:2*m+1]

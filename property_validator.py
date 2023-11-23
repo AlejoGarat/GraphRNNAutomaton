@@ -22,6 +22,7 @@ def validate_automaton_property(property: str, automaton: DFA) -> bool:
 
 def get_metrics(property, automatas):
     dfas = [automata_to_pythautomata_automata(automata) for automata in automatas]
+    
     if property == "connected":
         return connected_automatas_metrics(dfas)
     elif property == "unique_accepting":
@@ -33,62 +34,47 @@ def get_metrics(property, automatas):
 
 def connected_automatas_metrics(automatas: [DFA]) -> dict:
     automatas_dead_end_states = []
-    automatas_with_dead_end_states = []
+    accuracy = 0
     for automata in automatas:
         is_connected, obs = automaton_is_connected(automata)
-        if not is_connected:
-            automatas_with_dead_end_states.append(1)
-        else:
-            automatas_with_dead_end_states.append(0)
-        
+        accuracy += is_connected
         automatas_dead_end_states.append(obs["dead_end_states"])
-    
-    mae_dead_end_states_amount = np.mean(automatas_dead_end_states)
-    mae_automatas_with_dead_end_states = np.mean(automatas_with_dead_end_states)
-        
+
     return {
-        "mae_dead_end_states_amount": mae_dead_end_states_amount,
-        "mae_automatas_with_dead_end_states": mae_automatas_with_dead_end_states
+        "mean_dead_end_states": np.mean(automatas_dead_end_states),
+        "accuracy": accuracy / len(automatas) * 100,
     }
     
 def unique_accepting_automatas_metrics(automatas: [DFA]) -> dict:
     final_states = []
-    automatas_with_non_unique_accepting_state = []
+    accuracy = 0
     for automata in automatas:
         is_unique, obs = automaton_has_unique_accepting_state(automata)
-        if is_unique:
-            automatas_with_non_unique_accepting_state.append(1)
-        else:
-            automatas_with_non_unique_accepting_state.append(0)
-        
+        accuracy += is_unique
         final_states.append(obs["final_states"])
         
-    mae_final_states_amount = np.mean(final_states)
-    mae_automatas_with_unique_accepting_state = np.mean(automatas_with_non_unique_accepting_state)
-    
     return {
-        "mae_unique_accepting_states_amount": mae_final_states_amount,
-        "mae_automatas_with_unique_accepting_state": mae_automatas_with_unique_accepting_state
+        "mean_accepting_states": np.mean(final_states),
+        "accuracy": accuracy / len(automatas) * 100,
     }
     
 def minimal_automatas_metrics(automatas: [DFA]) -> dict:
     indistinguishable_states = []
     dead_end_states = []
     unreachable_states = []
+    accuracy = 0 
     for automata in automatas:
-        _, obs = automaton_is_minimal(automata)
+        is_minimal, obs = automaton_is_minimal(automata)
         indistinguishable_states.append(obs["indistinguishable_states"])
         dead_end_states.append(obs["dead_end_states"])
         unreachable_states.append(obs["unreachable_states"])
-        
-    mae_indistinguishable_states = np.mean(indistinguishable_states)
-    mae_dead_end_states = np.mean(dead_end_states)
-    mae_unreachable_states = np.mean(unreachable_states)
-    
+        accuracy += is_minimal
+            
     return {
-        "mae_indistinguishable_states": mae_indistinguishable_states,
-        "mae_dead_end_states": mae_dead_end_states,
-        "mae_unreachable_states": mae_unreachable_states
+        "mean_indistinguishable_states": np.mean(indistinguishable_states),
+        "mean_dead_end_states": np.mean(dead_end_states),
+        "mean_unreachable_states": np.mean(unreachable_states),
+        "accuracy": accuracy / len(automatas) * 100
     }
 
 def automaton_is_connected(automaton: DFA) -> tuple[bool, dict]:
@@ -107,7 +93,7 @@ def automaton_is_connected(automaton: DFA) -> tuple[bool, dict]:
         
 def is_dead_end_state(dfa: DFA, state: State) -> bool:
     for symbol in dfa.alphabet.symbols:
-        if state not in state.transitions[symbol]:
+        if  symbol not in state.transitions or state not in state.transitions[symbol]:
             return False
     
     return True
@@ -152,26 +138,31 @@ def get_unreachable_states_amount(dfa: DFA) -> int:
         for neighbor in get_neighbors(dfa, node):
             if neighbor not in vis and neighbor not in queue:
                 queue.append(neighbor)
-                
     return len(dfa.states) - len(vis)
     
 def get_neighbors(dfa: DFA, state: State) -> [State]:
+    neighbors = []
     for symbol in dfa.alphabet.symbols:
-        yield state.next_state_for(symbol)
-  
-  
+        neigbor = state.next_state_for(SymbolStr(symbol))
+        if neigbor.name != 'Hole' and neigbor not in neighbors:
+            neighbors.append(neigbor)
+            
+    return neighbors
+        
 # Minimal property automata 
-state = State("q0")
+state = State('q0')
 alphabet = Alphabet([SymbolStr("a"), SymbolStr("b")])
 state.add_transition(SymbolStr("a"), state)
-state.add_transition(SymbolStr("b"), state)
 state.is_final = False
 dfa = DFA(alphabet, state, [state], None, None)
-state = State("q0")
-alphabet = Alphabet([SymbolStr("a"), SymbolStr("b")])
-state.add_transition(SymbolStr("a"), state)
-state.add_transition(SymbolStr("b"), state)
-state.is_final = False
-dfa2 = DFA(alphabet, state, [state], None, None)
 
-print(connected_automatas_metrics([dfa, dfa2]))
+
+state = State('q0')
+alphabet = Alphabet([SymbolStr('0'), SymbolStr('1')])
+print(alphabet)
+print(alphabet.symbols)
+state.is_final = False
+dfa2 = DFA(alphabet, state, set([state]), None, None)
+print(state.next_state_for('b').name)
+
+print(minimal_automatas_metrics([dfa, dfa2]))

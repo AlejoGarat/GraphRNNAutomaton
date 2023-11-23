@@ -34,16 +34,18 @@ def automata_to_pythautomata_automata(automata: Automata) -> DFA:
     final_states = automata.final_states
     initial_state = State(automata.initial_state)
     states = set()
+    states.add(initial_state)
     for state_name in automata.pos_dict.keys():
-        states.add(State(state_name, state_name in final_states))
+        if state_name != automata.initial_state:
+            states.add(State(state_name, state_name in final_states))
 
     for state in states:
         state_pos = automata.pos_dict[state.name]
         for pos in range(len(automata.transitions)):
             for symbol in automata.transitions[state_pos][pos]:
                 state.add_transition(SymbolStr(symbol), get_state_of_pos(pos, automata, states))      
-                
-    return DFA(alphabet=Alphabet([SymbolStr(s) for s in list(alphabet)]), states=states, initial_state=initial_state, comparator=None)
+    
+    return DFA(alphabet=Alphabet([SymbolStr(str(s)) for s in list(alphabet)]), states=states, initial_state=initial_state, comparator=None)
    
 def get_state_of_pos(pos: int, automata: Automata, states: set):
     for state in states:
