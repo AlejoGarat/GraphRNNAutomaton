@@ -99,11 +99,16 @@ def is_dead_end_state(dfa: DFA, state: State) -> bool:
     return True
 
 def automaton_has_unique_accepting_state(automaton: DFA) -> tuple[bool, dict]:
+    final_states = 0
+    for state in automaton.states:
+        if state.is_final:
+            final_states +=1
     obs = {
-        "final_states": automaton.final_states
+        "final_states": final_states
     }
-    return len(automaton.final_states) == 1, obs
-                                                    
+    
+    return final_states == 1, obs
+                                                                              
     
 def automaton_is_minimal(automaton: DFA) -> tuple[bool, dict]:
     dfa_minimizer = DFAMinimizer(automaton)
