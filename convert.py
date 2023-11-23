@@ -1,7 +1,6 @@
 from automata_converter import automata_to_pythautomata_automata
 from automata import Automata
 import numpy as np
-#Import StandardDotExportingStrategy
 from pythautomata.model_exporters.dot_exporters.dfa_dot_exporting_strategy import DfaDotExportingStrategy as DotExporter
 # Convert an automata to a pythautomata automata example
 

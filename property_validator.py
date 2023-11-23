@@ -5,6 +5,7 @@ from pythautomata.base_types.symbol import SymbolStr
 from pythautomata.base_types.alphabet import Alphabet
 from pythautomata.utilities.dfa_minimizer import DFAMinimizer
 from automata_converter import automata_to_pythautomata_automata
+from pythautomata.model_exporters.dot_exporters.dfa_dot_exporting_strategy import DfaDotExportingStrategy as DotExporter
 
 def validate_property(property, automaton):
     return validate_automaton_property(property,
@@ -149,25 +150,28 @@ def get_neighbors(dfa: DFA, state: State) -> [State]:
     neighbors = []
     for symbol in dfa.alphabet.symbols:
         neigbor = state.next_state_for(SymbolStr(symbol))
-        if neigbor.name != 'Hole' and neigbor not in neighbors:
+        if neigbor not in neighbors:
             neighbors.append(neigbor)
             
     return neighbors
         
 # Minimal property automata 
+'''
 state = State('q0')
 alphabet = Alphabet([SymbolStr("a"), SymbolStr("b")])
 state.add_transition(SymbolStr("a"), state)
 state.is_final = False
 dfa = DFA(alphabet, state, [state], None, None)
 
-
 state = State('q0')
+hole = State('q1', is_final=True)
 alphabet = Alphabet([SymbolStr('0'), SymbolStr('1')])
-print(alphabet)
-print(alphabet.symbols)
 state.is_final = False
-dfa2 = DFA(alphabet, state, set([state]), None, None)
-print(state.next_state_for('b').name)
+dfa2 = DFA(alphabet, state, set([state]), None, None, hole=hole)
+print("States: ", dfa2.states)
+for state in dfa2.states:
+    print("State: ", state)
+    print("Transitons: ", state.transitions)
 
-print(minimal_automatas_metrics([dfa, dfa2]))
+DotExporter().export(dfa2)
+'''

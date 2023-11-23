@@ -45,7 +45,12 @@ def automata_to_pythautomata_automata(automata: Automata) -> DFA:
             for symbol in automata.transitions[state_pos][pos]:
                 state.add_transition(SymbolStr(symbol), get_state_of_pos(pos, automata, states))      
     
-    return DFA(alphabet=Alphabet([SymbolStr(str(s)) for s in list(alphabet)]), states=states, initial_state=initial_state, comparator=None)
+    hole = State(name="hole", is_final=True)
+    return DFA(alphabet=Alphabet([SymbolStr(str(s)) for s in list(alphabet)]), 
+               states=states, 
+               initial_state=initial_state, 
+               comparator=None,
+               hole=hole)
    
 def get_state_of_pos(pos: int, automata: Automata, states: set):
     for state in states:
