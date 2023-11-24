@@ -15,7 +15,7 @@ def create_sweep(name, parameters, method, project, entity):
         'method': method,
         'name':name,
         'metric': {
-            'goal':'maximize', 'name':'val_acc'
+            'goal':'maximize', 'name':'accuracy'
         },
         'parameters':parameters
     }
