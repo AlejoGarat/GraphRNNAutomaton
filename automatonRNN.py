@@ -2,24 +2,30 @@ import torch
 import torch.nn.functional as F
 import torch.nn as nn
 import numpy as np
-from torch.nn import RNN, Linear, Dropout
+from torch.nn import RNN, GRU, Linear, Dropout
 from graph import Graph
 from automata_converter import convert_to_automata
 
 class EdgeMLP(nn.Module):
-    def __init__(self, m, input_dim):
+    def __init__(self, m, input_dim, dropout, weight_init, hidden_dim):
         super(EdgeMLP, self).__init__()
         self.m = m
 
-        self.l1 = Linear(in_features=input_dim, out_features=512)
-        self.l2 = Linear(in_features=512, out_features=256)
-        self.l3 = Linear(in_features=256, out_features=512)
-        self.l4 = Linear(in_features=512, out_features=2*m+3)
+        self.l1 = Linear(in_features=input_dim, out_features=hidden_dim)
+        self.l2 = Linear(in_features=hidden_dim, out_features=hidden_dim//2)
+        self.l3 = Linear(in_features=hidden_dim//2, out_features=hidden_dim)
+        self.l4 = Linear(in_features=hidden_dim, out_features=2*m+3)
+
+        if weight_init == 'xavier':
+            torch.nn.init.xavier_uniform_(self.l1.weight)
+            torch.nn.init.xavier_uniform_(self.l2.weight)
+            torch.nn.init.xavier_uniform_(self.l3.weight)
+            torch.nn.init.xavier_uniform_(self.l4.weight)
     
-        self.dropout = Dropout(p=.3)
+        self.dropout = Dropout(p=dropout)
 
     def forward(self, x):
-        res = F.sigmoid(self.l1(x))
+        res = F.leaky_relu(self.l1(x))
         res = self.dropout(res)
         res = F.leaky_relu(self.l2(res), negative_slope=.02)
         res = self.dropout(res)
@@ -30,28 +36,38 @@ class EdgeMLP(nn.Module):
         return res
     
 class NodeRNN(nn.Module):
-    def __init__(self, input_dim, hidden_dim, num_layers=1, dropout=0):
+    def __init__(self, input_dim, hidden_dim, recurrent_module, weight_init, num_layers=1):
         super(NodeRNN, self).__init__()
         self.hidden_dim = hidden_dim
         self.input_dim = input_dim 
-        self.rnn = RNN(input_dim, hidden_dim, num_layers, dropout=dropout, batch_first=True)
+        if recurrent_module=='RNN':
+            self.rnn = RNN(input_dim, hidden_dim, num_layers, batch_first=False)
+        else:
+            self.rnn = GRU(input_dim, hidden_dim, num_layers, batch_first=False)
+        
+        if weight_init == 'xavier':
+            for weight in self.rnn._all_weights[0]:
+                if 'weight' in weight:
+                    torch.nn.init.xavier_uniform_(getattr(self.rnn, weight))
+                if 'bias' in weight:
+                    torch.nn.init.uniform_(getattr(self.rnn, weight))
 
     def forward(self, x, h):
-        _, h = self.rnn(x, h)
+        h, _ = self.rnn(x, h)
         return h[-1]
     
     def get_sos(self, batch_size):
-        return torch.zeros((batch_size, 1, self.input_dim))
+        return torch.zeros((1, batch_size, self.input_dim))
     
     def get_initial_hidden(self, batch_size):
         return torch.zeros((1, batch_size, self.hidden_dim))
     
 class AutomatonRNN(nn.Module):
-    def __init__(self, m, hidden_dim):
+    def __init__(self, m, hidden_dim, recurrent_module, weight_init, dropout, mlp_hidden_dim):
         super(AutomatonRNN, self).__init__()
         self.m = m
-        self.node_rnn = NodeRNN(2*m+3, hidden_dim)
-        self.edge_model = EdgeMLP(m, input_dim=hidden_dim)
+        self.node_rnn = NodeRNN(2*m+3, hidden_dim, recurrent_module, weight_init)
+        self.edge_model = EdgeMLP(m, hidden_dim, dropout, weight_init, mlp_hidden_dim)
 
     def forward(self, x, h):
         hidden = self.node_rnn(x, h)
