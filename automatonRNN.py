@@ -104,7 +104,7 @@ def generate(model, max_nodes, number_of_graphs):
             if nodes[0] > max_nodes:
                 end = True
                 
-            x = x.reshape(number_of_graphs, 1, -1)
+            x = x.reshape(1, number_of_graphs, -1)
             h = h.reshape(1, number_of_graphs, -1)
 
         return graphs
