@@ -36,10 +36,11 @@ class EdgeMLP(nn.Module):
         return res
     
 class NodeRNN(nn.Module):
-    def __init__(self, input_dim, hidden_dim, recurrent_module, weight_init, num_layers=1):
+    def __init__(self, input_dim, hidden_dim, recurrent_module, weight_init, m, num_layers=1):
         super(NodeRNN, self).__init__()
         self.hidden_dim = hidden_dim
         self.input_dim = input_dim 
+        self.m = m
         if recurrent_module=='RNN':
             self.rnn = RNN(input_dim, hidden_dim, num_layers, batch_first=False)
         else:
@@ -57,20 +58,33 @@ class NodeRNN(nn.Module):
         return h[-1]
     
     def get_sos(self, batch_size):
-        return torch.zeros((1, batch_size, self.input_dim))
+        return torch.zeros((batch_size, 2*self.m+3))
     
     def get_initial_hidden(self, batch_size):
         return torch.zeros((1, batch_size, self.hidden_dim))
     
+class InputEncoder(nn.Module):
+    def __init__(self, input_dim, output_dim):
+        super(InputEncoder, self).__init__()
+        self.l1 = Linear(in_features=input_dim, out_features=256)
+        self.out = Linear(in_features=256, out_features=output_dim)
+
+    def forward(self, X):
+        res = F.leaky_relu(self.l1(X))
+        return F.leaky_relu(self.out(res))
+    
 class AutomatonRNN(nn.Module):
-    def __init__(self, m, hidden_dim, recurrent_module, weight_init, dropout, mlp_hidden_dim):
+    def __init__(self, m, hidden_dim, recurrent_module, weight_init, dropout, mlp_hidden_dim, node_rnn_input_dim=32):
         super(AutomatonRNN, self).__init__()
         self.m = m
-        self.node_rnn = NodeRNN(2*m+3, hidden_dim, recurrent_module, weight_init)
+        self.node_rnn = NodeRNN(node_rnn_input_dim, hidden_dim, recurrent_module, weight_init, m=m)
         self.edge_model = EdgeMLP(m, hidden_dim, dropout, weight_init, mlp_hidden_dim)
+        self.input_encoder = InputEncoder(2*m+3, node_rnn_input_dim)
 
     def forward(self, x, h):
-        hidden = self.node_rnn(x, h)
+        bs = x.shape[0]
+        rnn_input = self.input_encoder(x).reshape(1,bs,-1)
+        hidden = self.node_rnn(rnn_input, h)
         return self.edge_model(hidden), hidden
     
     def get_sos(self, n):
@@ -104,7 +118,6 @@ def generate(model, max_nodes, number_of_graphs):
             if nodes[0] > max_nodes:
                 end = True
                 
-            x = x.reshape(1, number_of_graphs, -1)
             h = h.reshape(1, number_of_graphs, -1)
 
         return graphs
