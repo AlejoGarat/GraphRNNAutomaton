@@ -115,7 +115,7 @@ def generate(model, max_nodes, number_of_graphs):
                     nodes[i] += 1
 
             end = np.sum(ends) == len(ends)
-            if nodes[0] > max_nodes:
+            if max(nodes) > max_nodes:
                 end = True
                 
             h = h.reshape(1, number_of_graphs, -1)
